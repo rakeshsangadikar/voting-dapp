@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { getContract } from "../../lib/web3";
 import { toast } from "react-hot-toast";
-import CommonDialog from "../../components/CommonDialog";
+import CommonDialog from "../../components/Common/CommonDialog";
 
 export default function CandidateList() {
   const [candidates, setCandidates] = useState([]);
-  const [page, setPage] = useState(1);
   const [showDialog, setShowDialog] = useState(false);
   const [editCand, setEditCand] = useState("");
-  const pageSize = 20;
-
-
-
-  const paginated = candidates.slice((page - 1) * pageSize, page * pageSize);
 
     useEffect(() => {
       load();
@@ -66,8 +60,6 @@ export default function CandidateList() {
         }
     }
 
-
-
   return (
     <div className="p-6">
         
@@ -88,7 +80,7 @@ export default function CandidateList() {
                     </tr>
                     </thead>
                     <tbody>
-                    {paginated.map(c => (
+                    {candidates.map(c => (
                         <tr key={c}>
                         <td className="p-2 border">{c}</td>
                         <td className="p-2 border text-center">

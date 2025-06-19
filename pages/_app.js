@@ -1,9 +1,9 @@
 import '@/styles/globals.css';
 import { Toaster } from 'react-hot-toast';
-import Navbar from './navbar/navbar';
+import Navbar from '../components/Common/Navbar';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Loader from "../components/Loader"; // Adjust path as needed
+import Loader from "../components/Common/Loader";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();

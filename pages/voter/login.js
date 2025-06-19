@@ -32,20 +32,37 @@ export default function VoterLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <form onSubmit={login} className="bg-white p-6 rounded shadow w-full max-w-md">
-        <h1 className="text-primary mb-4 text-xl text-center">Voter Login</h1>
-        <input
-          type="text"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="Enter your wallet address"
-          className="border p-2 w-full mb-4 rounded"
-        />
-        <button type="submit" className="bg-primary text-white p-2 w-full rounded">
-          Login
-        </button>
-      </form>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+      <div className="bg-white shadow-2xl rounded-xl p-8 max-w-md w-full animate-fade-in">
+        <h1 className="text-3xl font-bold text-blue-700 text-center mb-2">Voter Login</h1>
+        <p className="text-center text-gray-600 mb-6">
+          Enter your registered Ethereum wallet address to access your dashboard.
+        </p>
+
+        <form onSubmit={login}>
+          <label className="block text-gray-700 mb-2 font-medium">
+            Wallet Address
+          </label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="0x..."
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+          >
+            Login
+          </button>
+        </form>
+
+        <p className="text-sm text-gray-500 text-center mt-6">
+          Make sure your wallet address is correct and registered by your institute.
+        </p>
+      </div>
     </div>
   );
 }

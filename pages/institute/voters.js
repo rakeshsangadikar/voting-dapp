@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getContract } from "../../lib/web3";
 import { toast } from "react-hot-toast";
-import CommonDialog from "../../components/CommonDialog";
+import CommonDialog from "../../components/Common/CommonDialog";
 
 export default function VoterList() {
   const [voters, setVoters] = useState([]);
