@@ -1,9 +1,14 @@
 
-require("@nomiclabs/hardhat-ethers");
-require("dotenv").config();
+// require("@nomiclabs/hardhat-ethers");
+// require("dotenv").config();
+
+import { config as dotenvConfig } from "dotenv";
+import "@nomiclabs/hardhat-ethers";
+
+dotenvConfig();
 
 /** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+export default {
   solidity: "0.8.0",
   networks: {
     hardhat: {
