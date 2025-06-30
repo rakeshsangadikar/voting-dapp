@@ -32,8 +32,8 @@ async function main() {
 
     if (envContent.includes("NEXT_PUBLIC_CONTRACT_ADDRESS")) {
       envContent = envContent.replace(
-        /NEXT_PUBLIC_CONTRACT_ADDRESS=.*/g,
-        `NEXT_PUBLIC_CONTRACT_ADDRESS=${voting.address}`
+        /NEXT_PUBLIC_CONTRACT_ADDRESS.*/g,
+        `NEXT_PUBLIC_CONTRACT_ADDRESS = ${voting.address}`
       );
     } else {
       envContent += `\nNEXT_PUBLIC_CONTRACT_ADDRESS=${voting.address}\n`;

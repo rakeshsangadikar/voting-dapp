@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getReadContract } from "@/lib/contract";
+import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const [candidates, setCandidates] = useState([]);
@@ -26,7 +27,7 @@ export default function Dashboard() {
         else if (now > end) setStatus("ENDED");
         else setStatus("LIVE");
 
-        const candidateAddrs = await contractInstance.read.getCandidateList();
+        const candidateAddrs = await contractInstance.read.getDashboardCandidate();
         const data = await Promise.all(
           candidateAddrs.map(async (addr) => {
             const [name, slogan, voteCount, photoUrl, docUrl] =
@@ -68,14 +69,22 @@ export default function Dashboard() {
             <span className="text-blue-600">{status}</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex justify-between items-center">
-          {leading && (
+        <CardContent className="flex justify-between items-center min-h-[280px]">
+          {leading && leading?.votes > 0 && (
             <div className="text-xl font-semibold text-yellow-500">
               🥇 Leading: {leading.name} ({leading.votes} votes)
             </div>
           )}
-          {mounted && (
-            <div className="w-64 h-64">
+
+          {mounted &&
+          candidates.length > 0 &&
+          candidates.some((c) => c.votes > 0) ? (
+            <motion.div
+              className="w-64 h-64"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+            >
               <PieChart width={250} height={250}>
                 <Pie
                   data={candidates}
@@ -96,9 +105,18 @@ export default function Dashboard() {
                 </Pie>
                 <Tooltip />
               </PieChart>
-            </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="text-gray-400 italic text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              No candidates or votes yet.
+            </motion.div>
           )}
         </CardContent>
+
       </Card>
 
       <div className="bg-white shadow rounded-xl p-4">

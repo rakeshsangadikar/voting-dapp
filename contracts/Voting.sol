@@ -28,6 +28,7 @@ contract Voting {
     mapping(address => Voter) public voters;
     mapping(address => Candidate) public candidates;
     address[] public candidateAddresses;
+    address[] public voterAddresses;
 
     uint public startTime;
     uint public endTime;
@@ -94,6 +95,7 @@ contract Voting {
             status: Status.Pending
         });
 
+        voterAddresses.push(_wallet);
         emit VoterRegistered(_wallet, _name);
     }
 
@@ -153,6 +155,10 @@ contract Voting {
         return candidateAddresses;
     }
 
+    function getVoterList() external view returns (address[] memory) {
+        return voterAddresses;
+    }
+
     function getCandidateDetails(address _candidateAddr) external view returns (
         string memory, string memory, uint, string memory, string memory, Status
     ) {
@@ -166,4 +172,35 @@ contract Voting {
         Voter memory v = voters[_voterAddr];
         return (v.name, v.wallet, v.docUrl, v.hasVoted, v.votedCandidate, v.status);
     }
+
+    function getDashboardCandidate() external view returns (address[] memory) {
+        uint count = 0;
+
+        // First, count how many are approved
+        for (uint i = 0; i < candidateAddresses.length; i++) {
+            if (candidates[candidateAddresses[i]].status == Status.Approved) {
+                count++;
+            }
+        }
+
+        // Allocate an array of that size
+        address[] memory approvedCandidates = new address[](count);
+        uint index = 0;
+
+        // Fill the array with approved addresses
+        for (uint i = 0; i < candidateAddresses.length; i++) {
+            if (candidates[candidateAddresses[i]].status == Status.Approved) {
+                approvedCandidates[index] = candidateAddresses[i];
+                index++;
+            }
+        }
+
+        return approvedCandidates;
+    }
+
+    function hasUserVoted() external view returns (bool) {
+        Voter memory sender = voters[msg.sender];
+        return sender.hasVoted;
+    }
+
 }

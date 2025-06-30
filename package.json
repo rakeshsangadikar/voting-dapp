@@ -8,11 +8,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "hardhat-local": "npx hardhat node",
     "deploy-local": "hardhat run scripts/deploy.js --network localhost",
     "deploy-hardhat": "hardhat run scripts/deploy.js --network hardhat"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
@@ -23,6 +25,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
+    "framer-motion": "^12.19.2",
     "lucide-react": "^0.524.0",
     "next": "15.3.3",
     "react": "^18.2.0",

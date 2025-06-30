@@ -30,7 +30,7 @@ export default function Sidebar({ onNavigate, activeView }) {
         active={activeView === 'register-voter'}
       />
       <MenuItem
-        label="🧑‍💼 Register Candidate"
+        label="🧑 Register Candidate"
         viewKey="register-candidate"
         onNavigate={onNavigate}
         active={activeView === 'register-candidate'}
@@ -47,14 +47,12 @@ export default function Sidebar({ onNavigate, activeView }) {
         onNavigate={onNavigate}
         active={activeView === 'candidate-list'}
       />
-      {/* {isAdmin && (
-        <MenuItem
-          label="🗂️ Election Setting"
-          viewKey="election-setting"
-          onNavigate={onNavigate}
-          active={activeView === 'election-setting'}
-        />
-      )} */}
+      <MenuItem
+        label="Cast Your Vote"
+        viewKey="vote"
+        onNavigate={onNavigate}
+        active={activeView === 'vote'}
+      />
       {isAdmin && (
         <MenuItem
           label="⚙️ System Setting"

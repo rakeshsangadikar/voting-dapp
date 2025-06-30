@@ -65,7 +65,7 @@ export default function RegisterVoter() {
           formData.name,
           docUrl,
         ]);
-        await tx.wait();
+        // await tx.wait();
 
         setFormData({
           name: '',
@@ -81,7 +81,7 @@ export default function RegisterVoter() {
     });
 
     toast.promise(uploadPromise, {
-      loading: 'Uploading document...',
+      loading: 'Registering Voter...',
       success: (msg) => msg,
       error: (err) => err,
     });

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getReadContract } from '@/lib/contract';
 import { Eye } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { USER_STATUS } from '@/lib/constant';
 
 // const mockCandidates = [
 //   {
@@ -31,13 +32,14 @@ export default function CandidateList() {
       const addrs = await contract.read.getCandidateList();
       const data = await Promise.all(
         addrs.map(async (addr, idx) => {
-          const [name, slogan, voteCount, photoUrl, docUrl] = await contract.read.getCandidateDetails([addr]);
+          const [name, slogan, voteCount, photoUrl, docUrl, status] = await contract.read.getCandidateDetails([addr]);
+          console.log("status", status);
           return {
             id: idx + 1,
             wallet: addr,
             name,
             slogan,
-            status: 'approved',
+            status: USER_STATUS[Number(status)].toLowerCase(),
             votes: Number(voteCount),
             photoUrl,
             docUrl,
@@ -90,9 +92,9 @@ export default function CandidateList() {
                       className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
                         candidate.status === 'approved'
                           ? 'bg-green-100 text-green-700'
-                          : candidate.status === 'rejected'
+                          : (candidate.status === 'rejected'
                           ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
+                          : 'bg-yellow-100 text-yellow-700')
                       }`}
                     >
                       {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}

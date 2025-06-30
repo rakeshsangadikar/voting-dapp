@@ -85,7 +85,7 @@ export default function RegisterCandidate() {
     });
 
     toast.promise(uploadPromise, {
-      loading: 'Uploading files to IPFS...',
+      loading: 'Registering Candidates...',
       success: (msg) => msg,
       error: (err) => err,
     });
