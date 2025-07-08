@@ -19,8 +19,8 @@ export default function SystemSettings() {
   const walletClient = useWalletClientSafe();
 
   const [electionDates, setElectionDates] = useState({
-    start: '2025-06-28T00:00:00',
-    end: '2025-06-28T11:59:59',
+    start: '',
+    end: '',
   });
 
   useEffect(() => {
@@ -68,8 +68,19 @@ export default function SystemSettings() {
       setVoters(data);
     }
 
+    const getElectionDates = async () => {
+      const contractInstance = getReadContract();
+      const start = await contractInstance.read.startTime();
+      const end = await contractInstance.read.endTime();
+      setElectionDates({
+        start: format(new Date(Number(start) * 1000), 'yyyy-MM-dd HH:mm:ss'),
+        end: format(new Date(Number(end) * 1000), 'yyyy-MM-dd HH:mm:ss'),
+      });
+    }
+
     getCandidates();
     getVoterList();
+    getElectionDates();
 
   }, [walletClient]);
 
@@ -299,20 +310,48 @@ export default function SystemSettings() {
         </TabsContent>
 
         <TabsContent value="election">
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              <div>
-                <label className="block mb-1">Election Start Date</label>
-                <Input type="datetime-local" name="start" value={electionDates.start} onChange={handleDateChange} />
+          <Card className="rounded-2xl shadow-md border border-gray-200">
+            <CardContent className="p-6 space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">Set Election Dates</h2>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="flex flex-col space-y-2">
+                  <label htmlFor="start" className="text-sm font-medium text-gray-700">Election Start Date</label>
+                  <Input
+                    id="start"
+                    type="datetime-local"
+                    name="start"
+                    value={electionDates.start}
+                    onChange={handleDateChange}
+                    className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label htmlFor="end" className="text-sm font-medium text-gray-700">Election End Date</label>
+                  <Input
+                    id="end"
+                    type="datetime-local"
+                    name="end"
+                    value={electionDates.end}
+                    onChange={handleDateChange}
+                    className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block mb-1">Election End Date</label>
-                <Input type="datetime-local" name="end" value={electionDates.end} onChange={handleDateChange} />
+
+              <div className="pt-4">
+                <Button
+                  onClick={saveDates}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                >
+                  Save Election Dates
+                </Button>
               </div>
-              <Button onClick={saveDates}>Save Election Dates</Button>
             </CardContent>
           </Card>
         </TabsContent>
+
       </Tabs>
     </div>
   );

@@ -2,15 +2,10 @@ import '../styles/globals.css';
 import { WagmiConfig } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { config } from '../lib/wagmi';
-// import { publicProvider } from 'wagmi/providers/public';
-import { WalletProvider } from '../context/WalletContext'
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Loader from '../components/Common/Loader';
 import { Toaster } from 'react-hot-toast';
-
-// const { publicClient, chains } = configureChains([mainnet], [publicProvider()]);
-// const wagmiConfig = createConfig({ autoConnect: true, publicClient });
 
 const queryClient = new QueryClient();
 
@@ -36,11 +31,9 @@ export default function App({ Component, pageProps }) {
   return (
     <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
-        <WalletProvider>
-          {loading && <Loader />}
-          <Toaster position="top-center" reverseOrder={false} />
-          <Component {...pageProps} />
-        </WalletProvider>
+        {loading && <Loader />}
+        <Toaster position="top-center" reverseOrder={false} />
+        <Component {...pageProps} />
       </QueryClientProvider>
     </WagmiConfig>
   );

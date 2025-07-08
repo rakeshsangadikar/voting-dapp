@@ -10,7 +10,7 @@ const { ethers, network } = pkg;
 
 async function main() {
   const startTime = Math.floor(Date.now() / 1000);
-  const endTime = startTime + 6 * 60 * 60;
+  const endTime = startTime + 6 * 60 * 60; // 6 hours from now
 
   const Voting = await ethers.getContractFactory("Voting");
   const voting = await Voting.deploy(startTime, endTime);
