@@ -123,9 +123,37 @@ export default function SystemSettings() {
   };
 
   const saveDates = () => {
-    // Call API to save electionDates
+    
+    const saveDatePromise = new Promise(async (resolve, reject) => {
+      try {
+        if (!electionDates.start || !electionDates.end) {
+          throw new Error('Both start and end dates are required.');
+        }
+        const startDate = new Date(electionDates.start);
+        const endDate = new Date(electionDates.end);
+        if (startDate >= endDate) {
+          throw new Error('End date must be after start date.');
+        }
+        const writerContract = getWriteContract(walletClient);
+        await writerContract.write.setVotingPeriod([
+          Math.floor(new Date(electionDates.start).getTime() / 1000),
+          Math.floor(new Date(electionDates.end).getTime() / 1000)
+        ]);
+        resolve('Voting period updated successfully!');
+      } catch (error) {
+        console.error('Failed to update voting period:', error);
+        reject(`Failed to update voting period: ${error.message}`);
+      }
+    });
+
+    toast.promise(saveDatePromise, {
+      loading: `Updating Voting Period...`,
+      success: (msg) => msg,
+      error: (err) => err,
+    });
     console.log('Election Dates Updated:', electionDates);
-    alert('Election dates updated');
+    
+    
   };
 
   return (

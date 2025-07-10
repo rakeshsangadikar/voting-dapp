@@ -8,6 +8,9 @@ export default function Dashboard() {
   const [candidates, setCandidates] = useState([]);
   const [leading, setLeading] = useState(null);
   const [status, setStatus] = useState("Loading...");
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [timeLeft, setTimeLeft] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,9 +22,12 @@ export default function Dashboard() {
       try {
         const contractInstance = getReadContract();
 
-        const start = await contractInstance.read.startTime();
-        const end = await contractInstance.read.endTime();
+        const start = Number(await contractInstance.read.startTime());
+        const end = Number(await contractInstance.read.endTime());
         const now = Math.floor(Date.now() / 1000);
+
+        setStartTime(start);
+        setEndTime(end);
 
         if (now < start) setStatus("UPCOMING");
         else if (now > end) setStatus("ENDED");
@@ -56,11 +62,48 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    let timer;
+    const updateTimer = () => {
+      const now = Math.floor(Date.now() / 1000);
+      let diff = 0;
+
+      if (status === "UPCOMING" && startTime) diff = startTime - now;
+      else if (status === "LIVE" && endTime) diff = endTime - now;
+      else {
+        setTimeLeft("");
+        return;
+      }
+
+      if (diff < 0) {
+        setTimeLeft("0 days 0 hrs 0 mins 0 secs");
+        return;
+      }
+
+      const days = Math.floor(diff / (3600 * 24));
+      const hrs = Math.floor((diff % (3600 * 24)) / 3600);
+      const mins = Math.floor((diff % 3600) / 60);
+      const secs = diff % 60;
+
+      setTimeLeft(`${days} days ${hrs} hrs ${mins} mins ${secs} secs`);
+    };
+
+    timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [status, startTime, endTime]);
+
   const COLORS = ["#2563EB", "#10B981", "#F97316", "#EF4444", "#8B5CF6"];
 
   return (
     <div className="p-6 space-y-6 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold text-blue-700">📊 Voting Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-blue-700">📊 Voting Dashboard</h1>
+        {status !== "ENDED" && timeLeft && (
+          <div className="text-md bg-blue-100 text-blue-800 font-semibold px-4 py-2 rounded-lg shadow-sm">
+            ⏳ Voting will be {status === "LIVE" ? "close in" : " starts in"}: {timeLeft}
+          </div>
+        )}
+      </div>
 
       <Card>
         <CardHeader>
@@ -116,14 +159,13 @@ export default function Dashboard() {
             </motion.div>
           )}
         </CardContent>
-
       </Card>
 
       <div className="bg-white shadow rounded-xl p-4">
         <h2 className="text-xl font-semibold text-gray-800 mb-3">
           Candidate Summary
         </h2>
-        { candidates.length === 0 ? (
+        {candidates.length === 0 ? (
           <div className="text-center text-gray-500 py-6">
             No candidates found. Please check back later.
           </div>
