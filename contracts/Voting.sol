@@ -2,212 +2,205 @@
 pragma solidity ^0.8.0;
 
 contract Voting {
-    address public superAdmin;
+    address public admin;
 
-    constructor(address _superAdmin) {
-        require(_superAdmin != address(0), "Invalid super admin");
-        superAdmin = _superAdmin;
-    }
-
-    // -----------------------
-    // Structs and State
-    // -----------------------
-
-    struct Institute {
-        string name;
-        address wallet;
-        bool active;
-    }
+    enum Status { Pending, Approved, Rejected }
 
     struct Candidate {
         string name;
         string slogan;
-        address institute;
+        uint voteCount;
+        string photoUrl;
+        string docUrl;
+        Status status;
     }
 
     struct Voter {
+        string name;
         address wallet;
-        address institute;
+        string docUrl;
         bool hasVoted;
-        bool isRegistered;
+        address votedCandidate;
+        Status status;
     }
 
-    Institute[] public institutes;
-    Candidate[] public candidates;
-    Voter[] public voters;
+    mapping(address => bool) public admins;
+    mapping(address => Voter) public voters;
+    mapping(address => Candidate) public candidates;
+    address[] public candidateAddresses;
+    address[] public voterAddresses;
 
-    mapping(address => bool) public isInstitute;
-    mapping(address => bool) public hasVoted;
-    mapping(string => uint) public votes;
-
-    // -----------------------
-    // Modifiers
-    // -----------------------
-
-    modifier onlySuperAdmin() {
-        require(msg.sender == superAdmin, "Only super admin");
-        _;
-    }
+    uint public startTime;
+    uint public endTime;
 
     modifier onlyAdmin() {
-        require(isInstitute[msg.sender], "Only institute admin");
+        require(admins[msg.sender], "Not an admin");
         _;
     }
 
-    // -----------------------
-    // Events
-    // -----------------------
-
-    event InstituteAdded(address wallet, string name);
-    event InstituteRemoved(address wallet);
-    event CandidateAdded(string name, string slogan);
-    event VoterRegistered(address voter);
-    event Voted(address voter, string candidate);
-
-    // -----------------------
-    // Super Admin Functions
-    // -----------------------
-
-    function addInstitute(string memory name, address wallet) external onlySuperAdmin {
-        require(!isInstitute[wallet], "Already added");
-        isInstitute[wallet] = true;
-        institutes.push(Institute(name, wallet, true));
-        emit InstituteAdded(wallet, name);
+    modifier onlyDuringVoting() {
+        require(block.timestamp >= startTime && block.timestamp <= endTime, "Voting is not active");
+        _;
     }
 
-    function removeInstitute(address wallet) external onlySuperAdmin {
-        require(isInstitute[wallet], "Not an institute");
-        isInstitute[wallet] = false;
+    constructor(uint _startTime, uint _endTime) {
+        require(msg.sender != address(0), "Invalid admin address");
+        require(_startTime < _endTime, "Invalid time range");
 
-        for (uint i = 0; i < institutes.length; i++) {
-            if (institutes[i].wallet == wallet) {
-                institutes[i].active = false;
-                break;
+        admin = msg.sender;
+        admins[msg.sender] = true;
+        startTime = _startTime;
+        endTime = _endTime;
+    }
+
+    // --- Events ---
+    event AdminAdded(address indexed newAdmin);
+    event CandidateRegistered(address indexed candidate, string name);
+    event CandidateStatusChanged(address indexed candidate, Status newStatus);
+    event VoterRegistered(address indexed voter, string name);
+    event VoterStatusChanged(address indexed voter, Status newStatus);
+    event Voted(address indexed voter, address indexed candidate);
+
+    // --- Admin Management ---
+    function isAdmin(address _addr) external view returns (bool) {
+        return admins[_addr];
+    }
+
+    function addAdmin(address _newAdmin) external onlyAdmin {
+        admins[_newAdmin] = true;
+        emit AdminAdded(_newAdmin);
+    }
+
+    // --- Voting Period ---
+    function setVotingPeriod(uint _startTime, uint _endTime) external onlyAdmin {
+        require(_startTime < _endTime, "Invalid time range");
+        startTime = _startTime;
+        endTime = _endTime;
+    }
+
+    // --- Voter Registration ---
+    function registerVoter(
+        address _wallet,
+        string memory _name,
+        string memory _docUrl
+    ) external onlyAdmin {
+        require(voters[_wallet].wallet == address(0), "Already registered");
+
+        voters[_wallet] = Voter({
+            name: _name,
+            wallet: _wallet,
+            docUrl: _docUrl,
+            hasVoted: false,
+            votedCandidate: address(0),
+            status: Status.Pending
+        });
+
+        voterAddresses.push(_wallet);
+        emit VoterRegistered(_wallet, _name);
+    }
+
+    // --- Candidate Registration ---
+    function registerCandidate(
+        address _candidateAddr,
+        string memory _name,
+        string memory _slogan,
+        string memory _photoUrl,
+        string memory _docUrl
+    ) external onlyAdmin {
+        require(bytes(candidates[_candidateAddr].name).length == 0, "Candidate already registered");
+
+        candidates[_candidateAddr] = Candidate({
+            name: _name,
+            slogan: _slogan,
+            voteCount: 0,
+            photoUrl: _photoUrl,
+            docUrl: _docUrl,
+            status: Status.Pending
+        });
+
+        candidateAddresses.push(_candidateAddr);
+        emit CandidateRegistered(_candidateAddr, _name);
+    }
+
+    // --- Voting ---
+    function vote(address _candidateAddr) external onlyDuringVoting {
+        Voter storage sender = voters[msg.sender];
+        require(sender.wallet != address(0), "Not a registered voter");
+        require(sender.status == Status.Approved, "Voter not approved");
+        require(!sender.hasVoted, "Already voted");
+        require(candidates[_candidateAddr].status == Status.Approved, "Candidate not approved");
+
+        sender.hasVoted = true;
+        sender.votedCandidate = _candidateAddr;
+        candidates[_candidateAddr].voteCount++;
+
+        emit Voted(msg.sender, _candidateAddr);
+    }
+
+    // --- Status Management ---
+    function changeCandidateStatus(address _candidateAddr, Status _newStatus) external onlyAdmin {
+        require(bytes(candidates[_candidateAddr].name).length != 0, "Candidate not found");
+        candidates[_candidateAddr].status = _newStatus;
+        emit CandidateStatusChanged(_candidateAddr, _newStatus);
+    }
+
+    function changeVoterStatus(address _voterAddr, Status _newStatus) external onlyAdmin {
+        require(voters[_voterAddr].wallet != address(0), "Voter not found");
+        voters[_voterAddr].status = _newStatus;
+        emit VoterStatusChanged(_voterAddr, _newStatus);
+    }
+
+    // --- Views ---
+    function getCandidateList() external view returns (address[] memory) {
+        return candidateAddresses;
+    }
+
+    function getVoterList() external view returns (address[] memory) {
+        return voterAddresses;
+    }
+
+    function getCandidateDetails(address _candidateAddr) external view returns (
+        string memory, string memory, uint, string memory, string memory, Status
+    ) {
+        Candidate memory c = candidates[_candidateAddr];
+        return (c.name, c.slogan, c.voteCount, c.photoUrl, c.docUrl, c.status);
+    }
+
+    function getVoterDetails(address _voterAddr) external view returns (
+        string memory, address, string memory, bool, address, Status
+    ) {
+        Voter memory v = voters[_voterAddr];
+        return (v.name, v.wallet, v.docUrl, v.hasVoted, v.votedCandidate, v.status);
+    }
+
+    function getDashboardCandidate() external view returns (address[] memory) {
+        uint count = 0;
+
+        // First, count how many are approved
+        for (uint i = 0; i < candidateAddresses.length; i++) {
+            if (candidates[candidateAddresses[i]].status == Status.Approved) {
+                count++;
             }
         }
 
-        emit InstituteRemoved(wallet);
-    }
+        // Allocate an array of that size
+        address[] memory approvedCandidates = new address[](count);
+        uint index = 0;
 
-    // -----------------------
-    // Institute (Admin) Functions
-    // -----------------------
-
-    function addCandidate(string memory name, string memory slogan) external onlyAdmin {
-        candidates.push(Candidate(name, slogan, msg.sender));
-        emit CandidateAdded(name, slogan);
-    }
-
-    function registerVoter(address voterAddr) external onlyAdmin {
-        for (uint i = 0; i < voters.length; i++) {
-            if (voters[i].wallet == voterAddr) revert("Already registered");
-        }
-
-        voters.push(Voter(voterAddr, msg.sender, false, true));
-        emit VoterRegistered(voterAddr);
-    }
-
-    function updateCandidate(uint index, string memory newName, string memory newSlogan) external onlyAdmin {
-        require(index < candidates.length, "Invalid index");
-        require(candidates[index].institute == msg.sender, "Unauthorized");
-
-        candidates[index].name = newName;
-        candidates[index].slogan = newSlogan;
-    }
-
-    function deleteCandidate(uint index) external onlyAdmin {
-        require(index < candidates.length, "Invalid index");
-        require(candidates[index].institute == msg.sender, "Unauthorized");
-
-        candidates[index] = candidates[candidates.length - 1];
-        candidates.pop();
-    }
-
-    function updateVoter(uint index, address newAddr) external onlyAdmin {
-        require(index < voters.length, "Invalid index");
-        Voter storage v = voters[index];
-        require(v.institute == msg.sender, "Unauthorized");
-        require(!v.isRegistered || v.wallet != newAddr, "Already registered");
-
-        v.wallet = newAddr;
-    }
-
-    function deleteVoter(uint index) external onlyAdmin {
-        require(index < voters.length, "Invalid index");
-        Voter storage v = voters[index];
-        require(v.institute == msg.sender, "Unauthorized");
-
-        voters[index] = voters[voters.length - 1];
-        voters.pop();
-    }
-
-    // -----------------------
-    // Voting
-    // -----------------------
-
-    function vote(string memory candidateName) external {
-        bool validVoter = false;
-        for (uint i = 0; i < voters.length; i++) {
-            if (voters[i].wallet == msg.sender && voters[i].isRegistered && !voters[i].hasVoted) {
-                voters[i].hasVoted = true;
-                validVoter = true;
-                break;
-            }
-        }
-        require(validVoter, "Not eligible or already voted");
-
-        bool validCandidate = false;
-        for (uint i = 0; i < candidates.length; i++) {
-            if (keccak256(bytes(candidates[i].name)) == keccak256(bytes(candidateName))) {
-                validCandidate = true;
-                break;
+        // Fill the array with approved addresses
+        for (uint i = 0; i < candidateAddresses.length; i++) {
+            if (candidates[candidateAddresses[i]].status == Status.Approved) {
+                approvedCandidates[index] = candidateAddresses[i];
+                index++;
             }
         }
 
-        require(validCandidate, "Invalid candidate");
-        votes[candidateName]++;
-        hasVoted[msg.sender] = true;
-
-        emit Voted(msg.sender, candidateName);
+        return approvedCandidates;
     }
 
-    // -----------------------
-    // Public View Functions
-    // -----------------------
-
-    function getInstituteCount() external view returns (uint) {
-        return institutes.length;
+    function hasUserVoted() external view returns (bool) {
+        Voter memory sender = voters[msg.sender];
+        return sender.hasVoted;
     }
 
-    function getInstitutes() external view returns (Institute[] memory) {
-        return institutes;
-    }
-
-    function getCandidateCount() external view returns (uint) {
-        return candidates.length;
-    }
-
-    function getCandidates() external view returns (Candidate[] memory) {
-        return candidates;
-    }
-
-    function getVoterCount() external view returns (uint) {
-        return voters.length;
-    }
-
-    function getVoters() external view returns (Voter[] memory) {
-        return voters;
-    }
-
-    function getVotes(string memory candidate) external view returns (uint) {
-        return votes[candidate];
-    }
-
-    function isSuperAdmin(address user) external view returns (bool) {
-        return user == superAdmin;
-    }
-
-    function isInstituteActive(address inst) external view returns (bool) {
-        return isInstitute[inst];
-    }
 }

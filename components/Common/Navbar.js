@@ -1,110 +1,46 @@
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import {
-  FaHome,
-  FaUserLock,
-  FaUniversity,
-  FaTachometerAlt,
-  FaSignOutAlt,
-} from 'react-icons/fa';
+'use client';
+
+import { useWalletManager } from '../../utils/walletManager';
+import { useConnect } from 'wagmi';
+import { injected } from 'wagmi/connectors';
 
 export default function Navbar() {
-  const [userRole, setUserRole] = useState(null);
-  const router = useRouter();
+  const { address, isConnected, isAdmin, walletReady } = useWalletManager();
+  const { connectAsync } = useConnect();
 
-  useEffect(() => {
-    const updateRole = () => {
-      const role = localStorage.getItem('userRole');
-      setUserRole(role);
-    };
-
-    updateRole();
-    window.addEventListener('userRoleChange', updateRole);
-    return () => window.removeEventListener('userRoleChange', updateRole);
-  }, []);
-
-  const handleLogout = () => {
-    const role = localStorage.getItem('userRole');
-    localStorage.removeItem('userRole');
-    setUserRole(null);
-    router.push(`${role}/login`);
+  const handleConnect = async () => {
+    try {
+      await connectAsync({ connector: injected() });
+    } catch (error) {
+      console.error('Wallet connection failed:', error);
+    }
   };
 
-  const linkStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    color: 'white',
-    textDecoration: 'none',
-    fontWeight: 500,
-  };
-
-  const navStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '60px',
-    backgroundColor: '#2563EB', // Tailwind blue-600
-    padding: '0 1.5rem',
-    display: 'flex',
-    alignItems: 'center',
-    zIndex: 1000,
-    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-  };
+  if (!walletReady) return null;
 
   return (
-    <nav style={navStyle}>
-      {/* Left Links */}
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        {!userRole ? (
-          <Link href="/" style={linkStyle}>
-            <FaHome /> Home
-          </Link>
-        ) : (
-          <Link href={`/${userRole}/dashboard`} style={linkStyle}>
-            <FaTachometerAlt /> Dashboard
-          </Link>
-        )}
-      </div>
+    <nav className="flex justify-between items-center bg-primary text-secondary px-6 py-4">
+      <h1 className="text-xl font-bold">Voting Application</h1>
 
-      {/* Center Heading */}
-      <h1
-        style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          color: 'white',
-        }}
-      >
-        Voting Application
-      </h1>
-
-      {/* Right Section */}
-      <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem' }}>
-        { userRole &&
-          <button
-            onClick={handleLogout}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: '#e74c3c',
-              color: 'white',
-              border: 'none',
-              padding: '0.4rem 1rem',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
-          >
-            <FaSignOutAlt /> Logout
-          </button>
-        }
-      </div>
+      {isConnected && address ? (
+        <div className="flex items-center gap-3">
+          <span className="text-sm">
+            Wallet: {address.slice(0, 6)}...{address.slice(-4)}
+          </span>
+          {isAdmin && (
+            <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+              Admin
+            </span>
+          )}
+        </div>
+      ) : (
+        <button
+          onClick={handleConnect}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Connect Wallet
+        </button>
+      )}
     </nav>
   );
 }

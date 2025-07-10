@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useTable, usePagination, useSortBy, useGlobalFilter } from "react-table";
 import InstituteModal from "@/pages/superadmin/InstituteModal";
-import { getContract } from "../../lib/web3";
+import CandidateModal from "./CandidateModal";
+import { getContract } from "../../lib/contract";
 
 export default function AdminTableView({ title, fetchData, columnsDef, modalType }) {
   const [dataList, setDataList] = useState([]);
@@ -61,6 +62,42 @@ export default function AdminTableView({ title, fetchData, columnsDef, modalType
 
       toast.success(
           isEditing ? "Institute updated successfully." : "Institute added successfully.",
+          { id: toastId }
+      );
+      success = true;
+    } catch (error) {
+      toast.error(error?.reason || error?.message || "Operation failed", { id: toastId });
+    }
+    if (success) {
+      try {
+          setEditData(null);
+          setModalOpen(false);
+          await load(); // Reload updated data
+      } catch (err) {
+          console.warn("Non-critical error after save:", err);
+      }
+    }
+  }
+
+  const handleSaveCand = async (candObj) => {
+    const isEditing = !!editData;
+    const toastId = toast.loading(isEditing ? "Updating Candidate..." : "Adding Candidate...");
+    let success = false;
+
+    try {
+      const vc = await getContract();
+      let tx;
+      if (isEditing) {
+          // Update institute
+          tx = await vc.updateCandidate(candObj.name, candObj.slogan);
+      } else {
+          // Add institute
+          tx = await vc.addCandidate(candObj.name, candObj.slogan);
+      }
+      await tx.wait();
+
+      toast.success(
+          isEditing ? "Candidate updated successfully." : "Candidate added successfully.",
           { id: toastId }
       );
       success = true;
@@ -172,6 +209,16 @@ export default function AdminTableView({ title, fetchData, columnsDef, modalType
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           onSubmit={handleSaveInst}
+          mode={modalMode}
+          initialData={editData}
+        />
+      )}
+
+      {modalType === "candidate" && (
+        <CandidateModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleSaveCand}
           mode={modalMode}
           initialData={editData}
         />
