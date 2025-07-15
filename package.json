@@ -10,7 +10,7 @@
     "lint": "next lint",
     "hardhat-local": "npx hardhat node",
     "deploy-local": "hardhat run scripts/deploy.js --network localhost",
-    "deploy-hardhat": "hardhat run scripts/deploy.js --network hardhat"
+    "deploy-holesky": "hardhat run scripts/deploy.js --network holesky"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
