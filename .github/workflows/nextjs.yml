@@ -76,12 +76,12 @@ jobs:
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
         env:
-          NEXT_PUBLIC_CONTRACT_ADDRESS: ${{ secrets.CONTRACT_ADDRESS }}
-          NEXT_PUBLIC_CHAIN_ID: ${{ secrets.CHAIN_ID }}
-          NEXT_PUBLIC_RPC_URL: ${{ secrets.RPC_URL }}
-          NEXT_PUBLIC_PINATA_JWT: ${{ secrets.PINATA_JWT }}
-          NEXT_PUBLIC_PINATA_UPLOAD_URL: ${{ secrets.PINATA_UPLOAD_URL }}
-          NEXT_PUBLIC_PINATA_GATEWAY_URL: ${{ secrets.PINATA_GATEWAY_URL }}
+          NEXT_PUBLIC_CONTRACT_ADDRESS: ${{ secrets.NEXT_PUBLIC_CONTRACT_ADDRESS }}
+          NEXT_PUBLIC_CHAIN_ID: ${{ secrets.NEXT_PUBLIC_CHAIN_ID }}
+          NEXT_PUBLIC_RPC_URL: ${{ secrets.NEXT_PUBLIC_RPC_URL }}
+          NEXT_PUBLIC_PINATA_JWT: ${{ secrets.NEXT_PUBLIC_PINATA_JWT }}
+          NEXT_PUBLIC_PINATA_UPLOAD_URL: ${{ secrets.NEXT_PUBLIC_PINATA_UPLOAD_URL }}
+          NEXT_PUBLIC_PINATA_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_PINATA_GATEWAY_URL }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
