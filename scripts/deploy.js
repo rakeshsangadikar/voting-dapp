@@ -1,5 +1,4 @@
 import pkg from "hardhat";
-// import { ethers, network } from "hardhat";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
