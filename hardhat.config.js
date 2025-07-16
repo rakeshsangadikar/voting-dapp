@@ -1,7 +1,3 @@
-
-// require("@nomiclabs/hardhat-ethers");
-// require("dotenv").config();
-
 import { config as dotenvConfig } from "dotenv";
 import "@nomiclabs/hardhat-ethers";
 
