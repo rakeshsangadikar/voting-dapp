@@ -1,10 +1,9 @@
 // utils/walletManager.js
 import { useEffect, useState } from 'react';
 import { useAccount, useConnect, useWalletClient, useReadContract } from 'wagmi';
-import { injected } from 'wagmi/connectors';
 import Voting from '../contracts/Voting.json';
+import { CONTRACT_ADDRESS } from '../lib/constant';
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const CONTRACT_ABI = Voting.abi;
 
 export function useWalletManager() {

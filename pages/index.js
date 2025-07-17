@@ -37,7 +37,7 @@ export default function Home() {
       <Head>
         <title>Voting App</title>
         <meta name="description" content="Decentralized Blockchain Voting System" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="./favicon.ico" />
       </Head>
 
       {/* Page content */}

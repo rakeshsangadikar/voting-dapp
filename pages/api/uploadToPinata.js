@@ -1,8 +1,5 @@
 import axios from 'axios';
-
-const postUrl = process.env.NEXT_PUBLIC_PINATA_UPLOAD_URL;
-const jwtToken = `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`;
-const readUrl = process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL;
+import { PINATA_UPLOAD_URL, PINATA_JWT, PINATA_GATEWAY_URL } from '../../lib/constant';
 
 export const uploadToPinata = async (file) => {
   const formData = new FormData();
@@ -14,13 +11,13 @@ export const uploadToPinata = async (file) => {
   const options = JSON.stringify({ cidVersion: 1 });
   formData.append('pinataOptions', options);
 
-  const res = await axios.post(postUrl, formData, {
+  const res = await axios.post(PINATA_UPLOAD_URL, formData, {
     maxContentLength: 'Infinity',
     headers: {
       'Content-Type': 'multipart/form-data',
-      Authorization: jwtToken,
+      Authorization: PINATA_JWT,
     },
   });
   
-  return readUrl + res.data.IpfsHash;
+  return PINATA_GATEWAY_URL + res.data.IpfsHash;
 };
